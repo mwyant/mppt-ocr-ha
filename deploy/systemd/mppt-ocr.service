@@ -1,0 +1,13 @@
+[Unit]
+Description=MPPT OCR HA Worker
+After=network.target
+
+[Service]
+User=izzy_ai
+WorkingDirectory=/container_mounts/mppt-ocr-ha/repo
+ExecStart=/home/izzy_ai/mppt_venv/bin/python3 /container_mounts/mppt-ocr-ha/repo/src/poll_gemini.py
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target
