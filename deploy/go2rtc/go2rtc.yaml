@@ -1,3 +1,4 @@
 streams:
   mppt:
     - ffmpeg:video0#video=h264
+    - snapshot
