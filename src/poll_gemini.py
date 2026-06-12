@@ -1,46 +1,45 @@
 import os
 import requests
-import google.generativeai as genai
 import json
-import time
+import base64
 
 def get_api_key():
     with open("/container_mounts/mppt-ocr-ha/.secrets", "r") as f:
         return f.read().strip()
 
-# Configure Gemini
-genai.configure(api_key=get_api_key())
-model = genai.GenerativeModel('gemini-1.5-flash-8b') # Using Flash 8B as a proxy for Flash Lite
-
 def poll_and_parse():
     snapshot_url = "http://localhost:1984/api/frame.jpeg?src=mppt"
+    api_key = get_api_key()
+    
+    # API endpoint for Gemini 1.5 Flash
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
     
     try:
         # Fetch snapshot
         response = requests.get(snapshot_url, timeout=10)
         response.raise_for_status()
         
-        # Send to Gemini
-        prompt = "Read the top and bottom numbers from this display. Return ONLY valid JSON in the format: {\"top\": <int>, \"bottom\": <float>}"
+        # Encode image to base64
+        image_b64 = base64.b64encode(response.content).decode('utf-8')
         
-        # We need to pass the image data. The SDK expects a file-like object or bytes.
-        # Since we have bytes, we can use a wrapper or save to temp file.
-        # For simplicity, let's use a temp file.
-        import tempfile
-        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
-            tmp.write(response.content)
-            tmp_path = tmp.name
-            
-        sample_file = genai.upload_file(tmp_path)
+        # Prepare request payload
+        payload = {
+            "contents": [{
+                "parts": [
+                    {"text": "Read the top and bottom numbers from this display. Return ONLY valid JSON in the format: {\"top\": <int>, \"bottom\": <float>}"},
+                    {"inline_data": {"mime_type": "image/jpeg", "data": image_b64}}
+                ]
+            }]
+        }
         
-        response = model.generate_content([prompt, sample_file])
+        # Send request with API key header
+        headers = {'Content-Type': 'application/json', 'x-goog-api-key': api_key}
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
         
         # Parse JSON
-        result = json.loads(response.text.strip().replace("```json", "").replace("```", ""))
-        
-        # Cleanup
-        genai.delete_file(sample_file.name)
-        os.remove(tmp_path)
+        result_text = response.json()['candidates'][0]['content']['parts'][0]['text']
+        result = json.loads(result_text.strip().replace("```json", "").replace("```", ""))
         
         return result
         
