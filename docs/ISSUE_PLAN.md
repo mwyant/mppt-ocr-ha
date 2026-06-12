@@ -34,6 +34,23 @@ Acceptance:
 
 - `docs/COPERNICUS_DEPLOYMENT.md` has exact paths and commands.
 
+### Issue: Document and test local-only model offload workflow
+
+Labels: `type:docs`, `priority:medium`, `phase:foundation`
+
+Tasks:
+
+- Document Switchboard endpoint `localhost:8002`.
+- Document direct Expert endpoint `localhost:8001`.
+- Define prompt prefix requiring local-only execution.
+- Identify safe offload tasks for mini/nano execution.
+- Add a dry-run command or checklist that does not call cloud endpoints.
+
+Acceptance:
+
+- `docs/LOCAL_LLM_OFFLOAD.md` gives clear instructions for local-only task delegation.
+- Project issues can reference the local-only workflow.
+
 ## Milestone: M2 - go2rtc Stream and Snapshot Service
 
 ### Issue: Create isolated go2rtc compose/config scaffold
