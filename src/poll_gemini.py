@@ -41,7 +41,8 @@ def poll_and_parse():
         
         # Write to Database
         conn = mysql.connector.connect(
-            host="172.19.0.3",
+            host="127.0.0.1",
+            port=3307,
             user="mppt_user",
             password=db_password,
             database="mppt_db"
@@ -64,4 +65,4 @@ if __name__ == "__main__":
         result = poll_and_parse()
         if result:
             print(json.dumps(result))
-        time.sleep(15)
+        time.sleep(30)

@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  db-proxy:
+    image: alpine/socat
+    container_name: mppt-db-proxy
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    command: tcp-listen:3306,fork,reuseaddr tcp-connect:172.19.0.3:3306
+    networks:
+      - copernicus-stack_default
+
+networks:
+  copernicus-stack_default:
+    external: true
