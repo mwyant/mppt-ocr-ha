@@ -3,24 +3,25 @@ import os
 import numpy as np
 
 def segment_digits(img):
-    # The images are already thresholded (black/white), so we can just find contours
-    # Ensure it's grayscale for contour detection
+    # The images are already thresholded (white digits on black background)
     if len(img.shape) == 3:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     else:
         gray = img
     
-    # Threshold again just in case, to ensure binary
+    # Threshold to ensure binary (white digits on black background)
     _, thresh = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY)
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
     # Sort contours by x-coordinate
     contours = sorted(contours, key=lambda c: cv2.boundingRect(c)[0])
     
+    h_img = img.shape[0]
     digits = []
     for c in contours:
         x, y, w, h = cv2.boundingRect(c)
-        if w > 5 and h > 10: # Filter noise
+        # Filter noise AND ensure it's in the digit area (top 70% of the crop)
+        if w > 5 and h > 10 and y < (h_img * 0.7):
             digits.append(img[y:y+h, x:x+w])
     return digits
 
