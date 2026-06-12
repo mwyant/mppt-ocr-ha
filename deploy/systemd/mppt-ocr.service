@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=izzy_ai
 WorkingDirectory=/container_mounts/mppt-ocr-ha/repo
-ExecStart=/home/izzy_ai/mppt_venv/bin/python3 /container_mounts/mppt-ocr-ha/repo/src/poll_gemini.py
+ExecStart=/home/izzy_ai/mppt_venv/bin/python3 -u /container_mounts/mppt-ocr-ha/repo/src/poll_gemini.py
 Restart=always
 RestartSec=5
 
