@@ -48,4 +48,9 @@ def poll_and_parse():
         return None
 
 if __name__ == "__main__":
-    print(poll_and_parse())
+    while True:
+        result = poll_and_parse()
+        if result:
+            print(json.dumps(result))
+            # TODO: Write to local database/file here
+        time.sleep(15)
