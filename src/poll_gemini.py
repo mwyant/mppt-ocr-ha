@@ -1,6 +1,10 @@
 import os
 import requests
+import google.generativeai as genai
 import json
+import time
+import tempfile
+
 import base64
 
 def get_api_key():
