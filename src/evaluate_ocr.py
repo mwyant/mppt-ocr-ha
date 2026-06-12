@@ -20,16 +20,25 @@ def evaluate(image_dir, adapters):
         if img is None:
             continue
 
+        # Crop top and bottom (using same coords as extraction)
+        top_crop = {"x": 200, "y": 50, "w": 200, "h": 100}
+        bottom_crop = {"x": 200, "y": 150, "w": 200, "h": 100}
+        
+        top_img = img[top_crop["y"]:top_crop["y"]+top_crop["h"], top_crop["x"]:top_crop["x"]+top_crop["w"]]
+        bottom_img = img[bottom_crop["y"]:bottom_crop["y"]+bottom_crop["h"], bottom_crop["x"]:bottom_crop["x"]+bottom_crop["w"]]
+
         row = {"filename": filename, "expected_top": top, "expected_bottom": bottom}
         
         for name, adapter in adapters.items():
-            prediction = adapter.predict(img)
-            # Simple assumption: prediction contains both values, or needs splitting
-            # For now, just store raw prediction
-            row[name] = prediction
+            if name == "template_match":
+                row["top_pred"] = adapter.predict(top_img, is_top=True)
+                row["bottom_pred"] = adapter.predict(bottom_img, is_top=False)
+            else:
+                prediction = adapter.predict(img)
+                row[name] = prediction
             
         results.append(row)
-        print(f"Evaluated {filename}: Expected {top}/{bottom}, Got { {k: v for k, v in row.items() if k in adapters} }")
+        print(f"Evaluated {filename}: Expected {top}/{bottom}, Got { {k: v for k, v in row.items() if 'pred' in k} }")
 
     return results
 
@@ -42,7 +51,8 @@ def main():
     args = parser.parse_args()
 
     adapters = {
-        "tesseract_host": TesseractHostAdapter()
+        "tesseract_host": TesseractHostAdapter(),
+        "template_match": TemplateMatchAdapter()
     }
     if args.docker:
         adapters["tesseract_docker"] = TesseractDockerAdapter()
