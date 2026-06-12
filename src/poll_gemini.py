@@ -11,8 +11,8 @@ def poll_and_parse():
     snapshot_url = "http://localhost:1984/api/frame.jpeg?src=mppt"
     api_key = get_api_key()
     
-    # API endpoint for Gemini 1.5 Flash
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+    # API endpoint for Gemini Flash Latest
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent"
     
     try:
         # Fetch snapshot
