@@ -6,7 +6,7 @@ from datetime import datetime
 import time
 
 def capture_snapshot(url, output_dir, stream_name):
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     filename = f"{stream_name}_{timestamp}.jpg"
     filepath = os.path.join(output_dir, filename)
     meta_filepath = os.path.join(output_dir, f"{stream_name}_{timestamp}.json")
@@ -50,6 +50,12 @@ if __name__ == "__main__":
     parser.add_argument("--url", default="http://localhost:1984/api/frame.jpeg?src=mppt", help="Snapshot URL")
     parser.add_argument("--out", default="data/snapshots", help="Output directory")
     parser.add_argument("--stream", default="mppt", help="Stream name for prefixing")
+    parser.add_argument("--count", type=int, default=1, help="Number of snapshots to capture")
+    parser.add_argument("--interval", type=float, default=0, help="Interval between snapshots in seconds")
 
     args = parser.parse_args()
-    capture_snapshot(args.url, args.out, args.stream)
+
+    for i in range(args.count):
+        capture_snapshot(args.url, args.out, args.stream)
+        if i < args.count - 1 and args.interval > 0:
+            time.sleep(args.interval)
