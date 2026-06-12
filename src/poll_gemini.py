@@ -4,8 +4,12 @@ import google.generativeai as genai
 import json
 import time
 
+def get_api_key():
+    with open("/container_mounts/mppt-ocr-ha/.secrets", "r") as f:
+        return f.read().strip()
+
 # Configure Gemini
-genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+genai.configure(api_key=get_api_key())
 model = genai.GenerativeModel('gemini-1.5-flash-8b') # Using Flash 8B as a proxy for Flash Lite
 
 def poll_and_parse():

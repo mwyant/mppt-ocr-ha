@@ -19,3 +19,4 @@ tmp/
 *.jpeg
 *.png
 !docs/images/.gitkeep
+.secrets
