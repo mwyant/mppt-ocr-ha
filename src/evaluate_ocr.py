@@ -9,25 +9,27 @@ def evaluate(image_dir, adapters):
     image_files = [f for f in os.listdir(image_dir) if f.endswith(('.png', '.jpg', '.jpeg'))]
 
     for filename in image_files:
-        # Expecting filename format: <value>_<position>_<timestamp>.jpg
-        # e.g. 52.1_bottom_20260612.jpg
-        parts = filename.split('_')
-        expected = parts[0]
+        # Expecting filename format: <top>-<bottom>-mppt_<timestamp>.jpg
+        # e.g. 78-0.9-mppt_20260611_161002.jpg
+        parts = filename.split('-')
+        top = parts[0]
+        bottom = parts[1]
         
         image_path = os.path.join(image_dir, filename)
         img = cv2.imread(image_path)
         if img is None:
             continue
 
-        row = {"filename": filename, "expected": expected}
+        row = {"filename": filename, "expected_top": top, "expected_bottom": bottom}
         
         for name, adapter in adapters.items():
             prediction = adapter.predict(img)
+            # Simple assumption: prediction contains both values, or needs splitting
+            # For now, just store raw prediction
             row[name] = prediction
-            row[f"{name}_match"] = (prediction == expected)
             
         results.append(row)
-        print(f"Evaluated {filename}: Expected {expected}, Got { {k: v for k, v in row.items() if k in adapters} }")
+        print(f"Evaluated {filename}: Expected {top}/{bottom}, Got { {k: v for k, v in row.items() if k in adapters} }")
 
     return results
 
