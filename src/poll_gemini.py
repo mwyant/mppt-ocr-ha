@@ -1,32 +1,28 @@
 import os
 import requests
-import google.generativeai as genai
 import json
+import base64
 import time
 import tempfile
+import mysql.connector
 
-import base64
-
-def get_api_key():
+def get_secrets():
     with open("/container_mounts/mppt-ocr-ha/.secrets", "r") as f:
-        return f.read().strip()
+        lines = f.readlines()
+        return lines[0].strip(), lines[1].strip()
 
 def poll_and_parse():
     snapshot_url = "http://localhost:1984/api/frame.jpeg?src=mppt"
-    api_key = get_api_key()
+    api_key, db_password = get_secrets()
     
-    # API endpoint for Gemini Flash Latest
     url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent"
     
     try:
-        # Fetch snapshot
         response = requests.get(snapshot_url, timeout=10)
         response.raise_for_status()
         
-        # Encode image to base64
         image_b64 = base64.b64encode(response.content).decode('utf-8')
         
-        # Prepare request payload
         payload = {
             "contents": [{
                 "parts": [
@@ -36,14 +32,26 @@ def poll_and_parse():
             }]
         }
         
-        # Send request with API key header
         headers = {'Content-Type': 'application/json', 'x-goog-api-key': api_key}
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
         
-        # Parse JSON
         result_text = response.json()['candidates'][0]['content']['parts'][0]['text']
         result = json.loads(result_text.strip().replace("```json", "").replace("```", ""))
+        
+        # Write to Database
+        conn = mysql.connector.connect(
+            host="172.19.0.3",
+            user="mppt_user",
+            password=db_password,
+            database="mppt_db"
+        )
+        cursor = conn.cursor()
+        cursor.execute("CREATE TABLE IF NOT EXISTS readings (id INT AUTO_INCREMENT PRIMARY KEY, top INT, bottom FLOAT, timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+        cursor.execute("INSERT INTO readings (top, bottom) VALUES (%s, %s)", (result['top'], result['bottom']))
+        conn.commit()
+        cursor.close()
+        conn.close()
         
         return result
         
@@ -56,5 +64,4 @@ if __name__ == "__main__":
         result = poll_and_parse()
         if result:
             print(json.dumps(result))
-            # TODO: Write to local database/file here
         time.sleep(15)
